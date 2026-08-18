@@ -8,11 +8,16 @@
 GitHub Release 에 올립니다.
 
 ```bash
-# 1. package.json 과 src-tauri/tauri.conf.json 의 version 을 올린다
-# 2. 커밋 후 태그 푸시
-git tag v0.1.1
-git push origin v0.1.1
+# 1. package.json 과 src-tauri/tauri.conf.json 의 version 을 올린다 (둘 다!)
+# 2. 커밋 후 같은 번호로 태그 푸시
+git tag v0.1.3
+git push origin v0.1.3
 ```
+
+> 태그와 앱 버전이 다르면 워크플로가 **빌드 전에 실패**한다.
+> 검증을 넣기 전 v0.1.2 에서, 태그만 올리고 버전을 안 올려 산출물이
+> `0.1.1` 로 나가고 `latest.json` 도 `0.1.1` 을 알려 자동 업데이트가
+> 조용히 죽는 일이 있었다.
 
 Actions 탭에서 `Tauri Release` 워크플로를 수동 실행(workflow_dispatch)할 수도 있습니다.
 

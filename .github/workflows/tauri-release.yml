@@ -42,6 +42,20 @@ jobs:
         with:
           node-version: lts/*
 
+      # 태그만 올리고 package.json 버전을 안 올리면 산출물과 latest.json 이
+      # 이전 버전으로 나가 자동 업데이트가 조용히 죽는다. 빌드 전에 막는다.
+      - name: Verify tag matches app version
+        shell: bash
+        run: |
+          TAG="${{ inputs.release_tag || github.ref_name }}"
+          APP="v$(node -p "require('./package.json').version")"
+          CONF="v$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          echo "tag=$TAG package.json=$APP tauri.conf.json=$CONF"
+          if [ "$TAG" != "$APP" ] || [ "$TAG" != "$CONF" ]; then
+            echo "::error::태그($TAG)와 앱 버전(package.json=$APP, tauri.conf.json=$CONF)이 다릅니다."
+            exit 1
+          fi
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
