@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, Hospital, Loader2 } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useAuthStore } from "./auth-store";
+import { getApiTarget, setApiTarget, type ApiTarget } from "../../shared/api/client";
 import { APP_PROFILE } from "../../shared/config/app-modules";
 import WindowControls from "../../shared/ui/WindowControls";
 
@@ -15,6 +16,15 @@ function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [apiTarget, setApiTargetState] = useState<ApiTarget>(() => getApiTarget());
+
+  /** 대상 서버를 바꾸면 저장된 토큰 기준이 달라지므로 새로고침으로 상태를 초기화한다. */
+  const changeTarget = (target: ApiTarget) => {
+    if (target === apiTarget) return;
+    setApiTarget(target);
+    setApiTargetState(target);
+    window.location.reload();
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -42,7 +52,25 @@ function LoginScreen() {
         <span className="text-[14px] font-bold tracking-tight text-text-primary">
           {APP_PROFILE.displayName}
         </span>
-        <WindowControls />
+        <div className="flex items-center gap-3">
+          <div className="inline-flex rounded-lg border border-surface-border-soft bg-surface-muted p-0.5 text-[11px] font-bold">
+            {(["local", "deploy"] as const).map((target) => (
+              <button
+                key={target}
+                type="button"
+                onClick={() => changeTarget(target)}
+                className={`rounded-md px-2.5 py-1 transition-colors ${
+                  apiTarget === target
+                    ? "bg-brand-primary text-white"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {target === "local" ? "로컬" : "배포"}
+              </button>
+            ))}
+          </div>
+          <WindowControls />
+        </div>
       </header>
 
       <main className="flex min-h-0 flex-1 items-center justify-center px-5">

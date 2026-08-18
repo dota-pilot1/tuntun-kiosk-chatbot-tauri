@@ -12,7 +12,21 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-close",
     "opener:default",
+    "process:default",
     "updater:default",
-    "process:default"
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://dxline-tallent.com/*"
+        },
+        {
+          "url": "http://localhost:4301/*"
+        },
+        {
+          "url": "http://127.0.0.1:4301/*"
+        }
+      ]
+    }
   ]
 }
