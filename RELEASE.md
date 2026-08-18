@@ -30,7 +30,7 @@ Actions 탭에서 `Tauri Release` 워크플로를 수동 실행(workflow_dispatc
 | `VITE_API_BASE` | 운영 병원 서버 주소 (`https://dxline-tallent.com`) | 등록됨 |
 | `TAURI_SIGNING_PRIVATE_KEY` | 자동 업데이트 서명 | 등록됨 |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 위 키의 비밀번호 | 등록됨 |
-| `APPLE_CERTIFICATE` 외 5개 | macOS 코드서명·공증 | **미등록** |
+| `APPLE_CERTIFICATE` 외 5개 | macOS 코드서명·공증 | 등록됨 |
 
 `VITE_API_BASE` 를 지우면 설치 파일이 `http://localhost:4301` 을 바라보게 되므로 건드리지 않는다.
 Apple 관련 6개는 아래 "macOS 코드서명·공증" 절 참고.
@@ -63,7 +63,7 @@ npm run tauri signer generate -- -w ~/.tauri/tuntun-kiosk.key
 공개키는 `src-tauri/tauri.conf.json` 의 `plugins.updater.pubkey` 에 넣고,
 개인키 파일과 비밀번호는 GitHub Secret 으로 등록한다.
 
-## macOS 코드서명 · 공증 (미적용)
+## macOS 코드서명 · 공증
 
 현재 macOS 산출물은 **미서명**이다. 첫 실행 시 Gatekeeper 경고가 뜬다.
 병원 PC 가 Windows 우선이므로 당장 운영에는 지장이 없다.
