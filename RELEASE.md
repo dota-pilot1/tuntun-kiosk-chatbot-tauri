@@ -25,57 +25,104 @@ Actions 탭에서 `Tauri Release` 워크플로를 수동 실행(workflow_dispatc
 
 ## GitHub Secrets
 
-지금 상태로도 **서명 없이** 빌드·배포됩니다. 아래는 선택 사항입니다.
-
-| Secret | 용도 | 없으면 |
+| Secret | 용도 | 상태 |
 | --- | --- | --- |
-| `VITE_API_BASE` | 운영 병원 서버 주소 | `http://localhost:4301` 로 빌드됨 |
-| `TAURI_SIGNING_PRIVATE_KEY` | 자동 업데이트 서명 | 자동 업데이트 비활성 |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 위 키의 비밀번호 | 〃 |
-| `APPLE_CERTIFICATE` 외 5개 | macOS 코드서명·공증 | 미서명 `.dmg` (첫 실행 시 경고) |
+| `VITE_API_BASE` | 운영 병원 서버 주소 (`https://dxline-tallent.com`) | 등록됨 |
+| `TAURI_SIGNING_PRIVATE_KEY` | 자동 업데이트 서명 | 등록됨 |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 위 키의 비밀번호 | 등록됨 |
+| `APPLE_CERTIFICATE` 외 5개 | macOS 코드서명·공증 | **미등록** |
 
-> macOS 코드서명은 워크플로에서 **주석 처리해 두었다.** 인증서 없이 빈 값을 넘기면
-> tauri-action 이 서명을 시도하다 `failed to import keychain certificate` 로 실패한다.
-> Apple Developer 인증서를 준비한 뒤 `tauri-release.yml` 의 `APPLE_*` 6줄 주석을 풀고
-> Secret 을 등록한다.
+`VITE_API_BASE` 를 지우면 설치 파일이 `http://localhost:4301` 을 바라보게 되므로 건드리지 않는다.
+Apple 관련 6개는 아래 "macOS 코드서명·공증" 절 참고.
 
-> `VITE_API_BASE` 를 등록하지 않으면 설치 파일이 localhost 를 바라봅니다.
-> 실제 배포 전에 반드시 등록하세요.
+## 자동 업데이트
 
-## 자동 업데이트 켜기 (선택)
+v0.1.1 부터 활성화되어 있다. 릴리즈마다 `latest.json` 과 `.sig` 가 함께 올라가고,
+앱은 아래 엔드포인트를 본다.
 
-계획서 §16 의 updater 흐름을 쓰려면 전용 서명 키가 필요합니다.
-**개인키는 절대 저장소에 커밋하지 마세요.**
+```
+https://github.com/dota-pilot1/tuntun-kiosk-chatbot-tauri/releases/latest/download/latest.json
+```
+
+저장소가 public 이므로 인증 없이 접근된다. **private 으로 바꾸면 자동 업데이트가 끊긴다.**
+
+서명 키 Secret 은 이미 등록돼 있다.
+
+| Secret | 상태 |
+| --- | --- |
+| `TAURI_SIGNING_PRIVATE_KEY` | 등록됨 |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 등록됨 |
+| `VITE_API_BASE` | 등록됨 |
+
+키를 새로 만들어야 할 때만 아래를 쓴다. **개인키는 절대 저장소에 커밋하지 않는다.**
 
 ```bash
 npm run tauri signer generate -- -w ~/.tauri/tuntun-kiosk.key
 ```
 
-1. 출력된 **공개키**를 `src-tauri/tauri.conf.json` 의 `plugins.updater.pubkey` 에 넣습니다.
-2. **개인키 파일 내용**을 GitHub Secret `TAURI_SIGNING_PRIVATE_KEY` 로,
-   생성 시 입력한 비밀번호를 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 로 등록합니다.
-3. `src-tauri/tauri.conf.json` 에 다음을 추가합니다.
+공개키는 `src-tauri/tauri.conf.json` 의 `plugins.updater.pubkey` 에 넣고,
+개인키 파일과 비밀번호는 GitHub Secret 으로 등록한다.
 
-```jsonc
-{
-  "bundle": { "createUpdaterArtifacts": true },
-  "plugins": {
-    "updater": {
-      "pubkey": "<위에서 얻은 공개키>",
-      "endpoints": [
-        "https://github.com/dota-pilot1/tuntun-kiosk-chatbot-tauri/releases/latest/download/latest.json"
-      ]
-    }
-  }
-}
+## macOS 코드서명 · 공증 (미적용)
+
+현재 macOS 산출물은 **미서명**이다. 첫 실행 시 Gatekeeper 경고가 뜬다.
+병원 PC 가 Windows 우선이므로 당장 운영에는 지장이 없다.
+
+### 왜 지금은 꺼 두었나
+
+인증서 없이 워크플로가 `APPLE_*` 를 빈 값으로 넘기면 tauri-action 이 서명을
+시도하다 실패한다. v0.1.0 의 macOS 잡이 이 이유로 죽었다.
+
+```
+failed codesign application: failed to run command security import:
+failed to import keychain certificate
 ```
 
-4. `src-tauri/Cargo.toml` 에 `tauri-plugin-updater = "2"`, `tauri-plugin-process = "2"` 를 추가하고
-   `lib.rs` 에서 플러그인을 등록합니다.
+그래서 `.github/workflows/tauri-release.yml` 의 `APPLE_*` 6줄을 주석 처리해 두었다.
 
-> 저장소가 private 이면 updater 엔드포인트에 인증이 필요합니다.
-> 사내 배포만 할 경우 릴리즈 저장소를 public 으로 두거나 별도 배포 서버를 검토하세요.
+### 켜는 절차
+
+`dota-pilot1` 계정은 다른 Tauri 앱(`tc-dx-mybatis` 등)에서 쓰는
+Developer ID 인증서를 이미 보유하고 있다. 같은 인증서를 재사용한다.
+
+1. 워크플로의 `APPLE_*` 6줄 주석을 푼다.
+2. Secret 6개를 등록한다. **파일 내용을 화면에 출력하지 말고 파이프로 넘긴다.**
+
+```bash
+REPO="dota-pilot1/tuntun-kiosk-chatbot-tauri"
+SECRETS_DIR="/Users/terecal/english-agent-hub-container/배포 가이드/.local-secrets"
+
+gh secret set APPLE_CERTIFICATE --repo "$REPO" \
+  < "$SECRETS_DIR/apple_certificate_base64.txt"
+gh secret set APPLE_CERTIFICATE_PASSWORD --repo "$REPO" \
+  < "$SECRETS_DIR/apple_certificate_password.txt"
+gh secret set APPLE_ID --repo "$REPO" \
+  < "$SECRETS_DIR/apple_id.txt"
+gh secret set APPLE_PASSWORD --repo "$REPO" \
+  < "$SECRETS_DIR/apple_app_specific_password.txt"
+
+printf '%s' 'Developer ID Application: Hyunseok oh (5PRM3RRTSH)' \
+  | gh secret set APPLE_SIGNING_IDENTITY --repo "$REPO"
+printf '%s' '5PRM3RRTSH' \
+  | gh secret set APPLE_TEAM_ID --repo "$REPO"
+
+gh secret list --repo "$REPO"
+```
+
+3. 새 태그를 푸시해 빌드한다.
+4. macOS 잡 로그에 `Notarizing Finished with status Accepted` 가 보이면 정상이다.
+
+> 인증서와 비밀번호는 서로 맞는 쌍이어야 한다. 인증서는 Base64 형식으로 등록한다.
+
+### 문제 해결
+
+| 증상 | 원인 |
+| --- | --- |
+| `failed to import keychain certificate` | `APPLE_*` 가 빈 값이거나 인증서/비밀번호 불일치 |
+| `SecKeychainItemImport` 실패 | Base64 인코딩 형식 또는 인증서 비밀번호 확인 |
+| 공증 단계 실패 | Apple ID, 앱 전용 비밀번호, Team ID, 서명 identity 확인 |
+| 설치 파일명이 `_0.1.0_...` 처럼 비어 나옴 | `productName` 이 비ASCII. ASCII 로 둔다 |
 
 ## 병원 PC 설치 정책
 
-계획서 §16 에 따라 자동 설치가 아니라 **새 버전 알림 후 직원 승인 설치**를 기본으로 합니다.
+계획서 §16 에 따라 자동 설치가 아니라 **새 버전 알림 후 직원 승인 설치**를 기본으로 한다.
