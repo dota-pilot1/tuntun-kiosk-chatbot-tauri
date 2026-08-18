@@ -4,7 +4,7 @@ import PageHeader from "../../shared/ui/PageHeader";
 import { API_BASE } from "../../shared/api/client";
 import { APP_PROFILE } from "../../shared/config/app-modules";
 
-const APP_VERSION = "0.1.0";
+const APP_VERSION = __APP_VERSION__;
 
 const TABS = [
   { id: "general", label: "일반 설정", icon: Settings2 },

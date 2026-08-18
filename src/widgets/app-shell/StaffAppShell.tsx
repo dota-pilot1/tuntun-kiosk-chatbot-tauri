@@ -5,7 +5,7 @@ import { useAuthStore } from "../../features/auth/auth-store";
 import WindowControls from "../../shared/ui/WindowControls";
 import { ContentRefreshProvider } from "../../shared/lib/content-refresh";
 
-const APP_VERSION = "0.1.0";
+const APP_VERSION = __APP_VERSION__;
 
 /**
  * 직원 콘솔 셸. 참조앱(tc-dx-mybatis) 레일 구조를 병원 브랜드로 옮겼다.
