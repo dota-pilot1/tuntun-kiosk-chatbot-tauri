@@ -34,6 +34,11 @@ Actions 탭에서 `Tauri Release` 워크플로를 수동 실행(workflow_dispatc
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 위 키의 비밀번호 | 〃 |
 | `APPLE_CERTIFICATE` 외 5개 | macOS 코드서명·공증 | 미서명 `.dmg` (첫 실행 시 경고) |
 
+> macOS 코드서명은 워크플로에서 **주석 처리해 두었다.** 인증서 없이 빈 값을 넘기면
+> tauri-action 이 서명을 시도하다 `failed to import keychain certificate` 로 실패한다.
+> Apple Developer 인증서를 준비한 뒤 `tauri-release.yml` 의 `APPLE_*` 6줄 주석을 풀고
+> Secret 을 등록한다.
+
 > `VITE_API_BASE` 를 등록하지 않으면 설치 파일이 localhost 를 바라봅니다.
 > 실제 배포 전에 반드시 등록하세요.
 

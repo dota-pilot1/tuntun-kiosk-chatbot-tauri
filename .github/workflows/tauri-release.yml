@@ -64,13 +64,16 @@ jobs:
           # 업데이터 서명 키 — 자동 업데이트를 켤 때 등록한다 (아래 README 참고)
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          # ── Apple 코드서명 + 공증 (macOS 잡에만 적용, 미등록 시 서명 없이 빌드됨) ──
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # ── Apple 코드서명 + 공증 ──
+          # 인증서가 없는 상태에서 아래 변수를 빈 값으로 넘기면 tauri-action 이
+          # 서명을 시도하다 "failed to import keychain certificate" 로 죽는다.
+          # Apple Developer 인증서를 준비한 뒤 아래 6줄의 주석을 풀고 Secret 을 등록한다.
+          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: .
           tagName: ${{ inputs.release_tag || github.ref_name }}
